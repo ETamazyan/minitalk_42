@@ -2,7 +2,7 @@ SOURCES = server.c client.c
 OBJECTS = $(SOURCES:.c=.o)
 
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -g3 
+CFLAGS = -Wall -Wextra -Werror
 
 all: server client
 
@@ -30,4 +30,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all bonus ft_printf clean fclean re
+.PHONY: all bonus clean fclean re

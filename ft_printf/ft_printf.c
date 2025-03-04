@@ -3,90 +3,71 @@
 /*                                                        :::      ::::::::   */
 /*   ft_printf.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: skirakos <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: etamazya <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/03/21 20:49:35 by skirakos          #+#    #+#             */
-/*   Updated: 2024/03/21 20:49:37 by skirakos         ###   ########.fr       */
+/*   Created: 2024/03/02 13:41:58 by etamazya          #+#    #+#             */
+/*   Updated: 2024/03/14 12:18:03 by etamazya         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
 #include "ft_printf.h"
 
-void	print(char c)
+unsigned int	ft_putptr(unsigned long ul, char c)
 {
-	write(1, &c, 1);
-}
+	size_t	count;
+	char	*str;
 
-int	ft_printf_str(char *x)
-{
-	int		j;
-	int		len;
-
-	j = 0;
-	len = 0;
-	if (x == NULL)
-	{
-		write(1, "(null)", 6);
-		len += 6;
-	}
+	count = 0;
+	str = "0123456789abcdef";
+	if (ul < 16)
+		count += ft_putchar(str[ul]);
 	else
 	{
-		while (x[j] != '\0')
-		{
-			write(1, &x[j++], 1);
-			len++;
-		}
+		count += ft_putptr(ul / 16, c);
+		count += ft_putptr(ul % 16, c);
 	}
-	return (len);
+	return (count);
 }
 
-void	ft_check(const char *str, int i, int *len, va_list args)
+int	ft_print_checklist(char c, va_list ap)
 {
-	char		c;
+	int	count;
 
-	if (str[i] == '%' && str[i + 1] == 'c')
+	count = 0;
+	if (c == '%')
+		count += ft_putchar('%');
+	else if (c == 'c')
+		count += ft_putchar(va_arg(ap, int));
+	else if (c == 's')
+		count += ft_putstr(va_arg(ap, char *));
+	else if (c == 'd' || c == 'i')
+		count += ft_putnbr(va_arg(ap, int));
+	else if (c == 'u')
+		count += ft_putunit(va_arg(ap, unsigned int));
+	else if (c == 'x' || c == 'X')
+		count += ft_puthex(va_arg(ap, unsigned int), c);
+	else if (c == 'p')
 	{
-		c = va_arg(args, int);
-		write(1, &c, 1);
-		(*len)++;
+		count += write(1, "0x", 2);
+		count += ft_putptr(va_arg(ap, unsigned long), c);
 	}
-	else if (str[i] == '%' && str[i + 1] == 's')
-		*len += ft_printf_str(va_arg(args, char *));
-	else if (str[i] == '%' && str[i + 1] == 'p')
-		*len += ft_printf_ptr(va_arg(args, unsigned long));
-	else if (str[i] == '%' && (str[i + 1] == 'd' || str[i + 1] == 'i'))
-		*len += ft_printf_d(va_arg(args, int));
-	else if (str[i] == '%' && str[i + 1] == 'u')
-		*len += ft_printf_u(va_arg(args, unsigned int));
-	else if (str[i] == '%' && str[i + 1] == 'x')
-		*len += ft_printf_x(va_arg(args, unsigned int));
-	else if (str[i] == '%' && str[i + 1] == 'X')
-		*len += ft_printf_upperx(va_arg(args, unsigned int));
-	else if (str[i] == '%' && str[i + 1] == '%')
-		*len += write(1, "%", 1);
+	return (count);
 }
 
-int	ft_printf(const char *str, ...)
+int	ft_printf(const char *s, ...)
 {
-	int		i;
-	int		len;
-	va_list	args;
+	va_list	ap;
+	size_t	count;
 
-	va_start(args, str);
-	i = 0;
-	len = 0;
-	while (str[i] != '\0')
+	count = 0;
+	va_start(ap, s);
+	while (*s)
 	{
-		ft_check(str, i, &len, args);
-		if (str[i] != '%')
-		{
-			write(1, &str[i], 1);
-			i++;
-			len++;
-		}
+		if (*s == '%')
+			count += ft_print_checklist(*(++s), ap);
 		else
-			i += 2;
+			count += write(1, s, 1);
+		s++;
 	}
-	va_end(args);
-	return (len);
+	va_end(ap);
+	return (count);
 }
